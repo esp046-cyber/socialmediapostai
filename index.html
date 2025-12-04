@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Social Media Post Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .result-content {
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hashtags {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .keyword-tag {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            color: #1565c0;
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI Social Media Post Generator</h1>
+            <p>Create engaging posts, captions, hashtags & keywords for any niche</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                ✨ <strong>Powered by AI:</strong> This generator creates custom content based on your niche and preferences!
+            </div>
+
+            <form id="postForm">
+                <div class="form-group">
+                    <label for="nicheSelect">Niche / Industry *</label>
+                    <select id="nicheSelect" onchange="toggleNicheInput()">
+                        <option value="">-- Select a Niche --</option>
+                        <optgroup label="Business & Career">
+                            <option value="business">Business & Entrepreneurship</option>
+                            <option value="marketing">Digital Marketing</option>
+                            <option value="sales">Sales & Lead Generation</option>
+                            <option value="realestate">Real Estate</option>
+                            <option value="finance">Finance & Investment</option>
+                            <option value="cryptocurrency">Cryptocurrency & Blockchain</option>
+                            <option value="consulting">Consulting Services</option>
+                            <option value="coaching">Life & Business Coaching</option>
+                            <option value="hr">Human Resources</option>
+                            <option value="leadership">Leadership & Management</option>
+                        </optgroup>
+                        <optgroup label="Health & Wellness">
+                            <option value="fitness">Fitness & Bodybuilding</option>
+                            <option value="yoga">Yoga & Meditation</option>
+                            <option value="nutrition">Nutrition & Diet</option>
+                            <option value="mentalhealth">Mental Health & Wellness</option>
+                            <option value="weightloss">Weight Loss</option>
+                            <option value="physiotherapy">Physiotherapy & Rehab</option>
+                        </optgroup>
+                        <optgroup label="Creative & Arts">
+                            <option value="photography">Photography</option>
+                            <option value="art">Art & Design</option>
+                            <option value="music">Music & Entertainment</option>
+                            <option value="writing">Writing & Blogging</option>
+                            <option value="videography">Videography & Film</option>
+                            <option value="graphicdesign">Graphic Design</option>
+                            <option value="animation">Animation & Motion Graphics</option>
+                        </optgroup>
+                        <optgroup label="Lifestyle">
+                            <option value="fashion">Fashion & Style</option>
+                            <option value="beauty">Beauty & Skincare</option>
+                            <option value="travel">Travel & Adventure</option>
+                            <option value="food">Food & Cooking</option>
+                            <option value="interior">Interior Design & Decor</option>
+                            <option value="lifestyle">General Lifestyle</option>
+                            <option value="luxury">Luxury Lifestyle</option>
+                            <option value="minimalism">Minimalism & Simple Living</option>
+                        </optgroup>
+                        <optgroup label="Technology">
+                            <option value="tech">Technology & Innovation</option>
+                            <option value="software">Software Development</option>
+                            <option value="ai">AI & Machine Learning</option>
+                            <option value="cybersecurity">Cybersecurity</option>
+                            <option value="mobile">Mobile Apps</option>
+                            <option value="saas">SaaS Products</option>
+                            <option value="gadgets">Tech Gadgets & Reviews</option>
+                        </optgroup>
+                        <optgroup label="Education & Learning">
+                            <option value="education">Education & Learning</option>
+                            <option value="elearning">E-Learning & Online Courses</option>
+                            <option value="language">Language Learning</option>
+                            <option value="stem">STEM Education</option>
+                            <option value="college">College & University</option>
+                        </optgroup>
+                        <optgroup label="Entertainment & Hobbies">
+                            <option value="gaming">Gaming & Esports</option>
+                            <option value="sports">Sports & Athletics</option>
+                            <option value="movies">Movies & TV Shows</option>
+                            <option value="books">Books & Reading</option>
+                            <option value="diy">DIY & Crafts</option>
+                            <option value="gardening">Gardening & Plants</option>
+                            <option value="automotive">Automotive & Cars</option>
+                        </optgroup>
+                        <optgroup label="Family & Relationships">
+                            <option value="parenting">Parenting & Family</option>
+                            <option value="pregnancy">Pregnancy & Baby Care</option>
+                            <option value="relationships">Relationships & Dating</option>
+                            <option value="wedding">Wedding & Events</option>
+                        </optgroup>
+                        <optgroup label="Other">
+                            <option value="pets">Pets & Animals</option>
+                            <option value="environment">Environment & Sustainability</option>
+                            <option value="nonprofit">Non-Profit & Charity</option>
+                            <option value="spirituality">Spirituality & Self-Help</option>
+                            <option value="legal">Legal Services</option>
+                            <option value="insurance">Insurance</option>
+                            <option value="others">Others (Specify)</option>
+                        </optgroup>
+                    </select>
+                    <input type="text" id="nicheOther" placeholder="Enter your niche..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="topicSelect">Topic / Subject *</label>
+                    <select id="topicSelect" onchange="toggleTopicInput()">
+                        <option value="">-- Select a Topic --</option>
+                        <optgroup label="Informational">
+                            <option value="tips">Tips & Tricks</option>
+                            <option value="tutorial">How-To Tutorial</option>
+                            <option value="guide">Complete Guide</option>
+                            <option value="educational">Educational Content</option>
+                            <option value="myth-busting">Myth Busting</option>
+                            <option value="faq">FAQ / Common Questions</option>
+                            <option value="explainer">Explainer Post</option>
+                            <option value="facts">Interesting Facts</option>
+                        </optgroup>
+                        <optgroup label="Engagement">
+                            <option value="question">Ask Question/Poll</option>
+                            <option value="quiz">Quiz / Challenge</option>
+                            <option value="caption-contest">Caption Contest</option>
+                            <option value="fill-blanks">Fill in the Blanks</option>
+                            <option value="this-or-that">This or That</option>
+                            <option value="ama">Ask Me Anything</option>
+                            <option value="ugc">User Generated Content</option>
+                        </optgroup>
+                        <optgroup label="Promotional">
+                            <option value="promotion">Promotion/Sale</option>
+                            <option value="product-launch">Product Launch</option>
+                            <option value="discount">Discount Offer</option>
+                            <option value="freebie">Free Resource/Giveaway</option>
+                            <option value="limited-offer">Limited Time Offer</option>
+                            <option value="testimonial">Customer Testimonial</option>
+                            <option value="before-after">Before & After</option>
+                        </optgroup>
+                        <optgroup label="Storytelling">
+                            <option value="success-story">Success Story</option>
+                            <option value="behind-scenes">Behind the Scenes</option>
+                            <option value="journey">My Journey</option>
+                            <option value="day-in-life">Day in the Life</option>
+                            <option value="case-study">Case Study</option>
+                            <option value="transformation">Transformation Story</option>
+                            <option value="failure-lesson">Failure & Lessons Learned</option>
+                        </optgroup>
+                        <optgroup label="Lists & Comparisons">
+                            <option value="list">List Post (Top 5/10)</option>
+                            <option value="comparison">Comparison/VS Post</option>
+                            <option value="pros-cons">Pros & Cons</option>
+                            <option value="best-of">Best of [Category]</option>
+                            <option value="mistakes">Common Mistakes to Avoid</option>
+                            <option value="must-haves">Must-Have Items</option>
+                        </optgroup>
+                        <optgroup label="Inspirational">
+                            <option value="motivation">Motivational Post</option>
+                            <option value="quote">Inspirational Quote</option>
+                            <option value="monday-motivation">Monday Motivation</option>
+                            <option value="throwback">Throwback Thursday</option>
+                            <option value="gratitude">Gratitude Post</option>
+                            <option value="affirmation">Daily Affirmation</option>
+                        </optgroup>
+                        <optgroup label="Updates & News">
+                            <option value="announcement">Announcement</option>
+                            <option value="event">Event Announcement</option>
+                            <option value="milestone">Milestone Celebration</option>
+                            <option value="trending">Trending Topic</option>
+                            <option value="news">Industry News</option>
+                            <option value="update">Product/Service Update</option>
+                        </optgroup>
+                        <optgroup label="Reviews & Opinions">
+                            <option value="review">Product/Service Review</option>
+                            <option value="recommendation">Recommendation</option>
+                            <option value="unboxing">Unboxing Experience</option>
+                            <option value="opinion">My Opinion On...</option>
+                            <option value="rant">Honest Rant</option>
+                        </optgroup>
+                        <optgroup label="Other">
+                            <option value="meme">Meme / Humor</option>
+                            <option value="recap">Weekly/Monthly Recap</option>
+                            <option value="teaser">Teaser / Coming Soon</option>
+                            <option value="collab">Collaboration Post</option>
+                            <option value="others">Others (Specify)</option>
+                        </optgroup>
+                    </select>
+                    <input type="text" id="topicOther" placeholder="Enter your topic/subject..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="platform">Platform</label>
+                        <select id="platform">
+                            <option value="instagram">Instagram</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="twitter">Twitter/X</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="pinterest">Pinterest</option>
+                            <option value="snapchat">Snapchat</option>
+                            <option value="threads">Threads</option>
+                            <option value="reddit">Reddit</option>
+                            <option value="medium">Medium</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="whatsapp">WhatsApp Status</option>
+                            <option value="general">General/Multi-Platform</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tone">Tone</label>
+                        <select id="tone" onchange="toggleToneInput()">
+                            <option value="professional">Professional</option>
+                            <option value="casual">Casual</option>
+                            <option value="friendly">Friendly</option>
+                            <option value="inspirational">Inspirational</option>
+                            <option value="humorous">Humorous</option>
+                            <option value="educational">Educational</option>
+                            <option value="motivational">Motivational</option>
+                            <option value="conversational">Conversational</option>
+                            <option value="authoritative">Authoritative</option>
+                            <option value="empathetic">Empathetic</option>
+                            <option value="enthusiastic">Enthusiastic</option>
+                            <option value="serious">Serious</option>
+                            <option value="playful">Playful</option>
+                            <option value="witty">Witty</option>
+                            <option value="bold">Bold & Confident</option>
+                            <option value="storytelling">Storytelling</option>
+                            <option value="minimalist">Minimalist</option>
+                            <option value="luxury">Luxury & Premium</option>
+                            <option value="urgency">Urgent & Direct</option>
+                            <option value="controversial">Thought-Provoking</option>
+                            <option value="others">Others (Specify)</option>
+                        </select>
+                        <input type="text" id="toneOther" placeholder="Describe your preferred tone..." style="display: none; margin-top: 10px;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="details">Additional Details (Optional)</label>
+                    <textarea id="details" placeholder="Add any specific points, call-to-action, or special requirements..."></textarea>
+                </div>
+
+                <button type="submit" class="generate-btn" id="generateBtn">
+                    ✨ Generate Post
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Generating your amazing content...</p>
+            </div>
+
+            <div class="results" id="results">
+                <div class="result-card">
+                    <h3>📝 Post Content</h3>
+                    <div class="result-content" id="postContent"></div>
+                    <button class="copy-btn" onclick="copyToClipboard('postContent')">📋 Copy Post</button>
+                </div>
+
+                <div class="result-card">
+                    <h3>💬 Caption</h3>
+                    <div class="result-content" id="caption"></div>
+                    <button class="copy-btn" onclick="copyToClipboard('caption')">📋 Copy Caption</button>
+                </div>
+
+                <div class="result-card">
+                    <h3>#️⃣ Hashtags</h3>
+                    <div class="result-content hashtags" id="hashtags"></div>
+                    <button class="copy-btn" onclick="copyToClipboard('hashtags')">📋 Copy Hashtags</button>
+                </div>
+
+                <div class="result-card">
+                    <h3>🔑 Keywords</h3>
+                    <div class="keywords" id="keywords"></div>
+                    <button class="copy-btn" onclick="copyKeywords()">📋 Copy Keywords</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleNicheInput() {
+            const nicheSelect = document.getElementById('nicheSelect');
+            const nicheOther = document.getElementById('nicheOther');
+            
+            if (nicheSelect.value === 'others') {
+                nicheOther.style.display = 'block';
+                nicheOther.required = true;
+            } else {
+                nicheOther.style.display = 'none';
+                nicheOther.required = false;
+            }
+        }
+
+        function toggleTopicInput() {
+            const topicSelect = document.getElementById('topicSelect');
+            const topicOther = document.getElementById('topicOther');
+            
+            if (topicSelect.value === 'others') {
+                topicOther.style.display = 'block';
+                topicOther.required = true;
+            } else {
+                topicOther.style.display = 'none';
+                topicOther.required = false;
+            }
+        }
+
+        function toggleToneInput() {
+            const toneSelect = document.getElementById('tone');
+            const toneOther = document.getElementById('toneOther');
+            
+            if (toneSelect.value === 'others') {
+                toneOther.style.display = 'block';
+                toneOther.required = true;
+            } else {
+                toneOther.style.display = 'none';
+                toneOther.required = false;
+            }
+        }
+
+        const contentTemplates = {
+            fitness: {
+                posts: [
+                    "Transform your mornings with this powerful routine! Start your day with intention and watch how it changes everything. Your future self will thank you for the consistency you build today.",
+                    "Consistency beats perfection every single time. Small daily improvements lead to stunning results. Remember: progress over perfection, always.",
+                    "Your body is capable of amazing things. Push past the mental barriers and discover your true potential. The only limits are the ones you set yourself."
+                ],
+                captions: [
+                    "Rise and grind! 💪 Who's ready to crush today?",
+                    "Stronger than yesterday, better than before ✨",
+                    "Your only competition is who you were yesterday 🔥"
+                ]
+            },
+            travel: {
+                posts: [
+                    "Adventure awaits in every corner of the world. Sometimes the best therapy is a plane ticket and a new destination. Pack your bags and let the journey transform you.",
+                    "Travel isn't just about the destination—it's about the memories you create, the people you meet, and the stories you'll tell for years to come.",
+                    "Exploring new places opens your mind to endless possibilities. Every journey teaches you something new about the world and yourself."
+                ],
+                captions: [
+                    "Wanderlust and city dust ✈️",
+                    "Collect moments, not things 🌍",
+                    "Adventure is calling and I must go 🗺️"
+                ]
+            },
+            food: {
+                posts: [
+                    "Food is love made visible. Every dish tells a story, every flavor brings people together. Let's celebrate the art of cooking and the joy of sharing meals with loved ones.",
+                    "There's something magical about creating delicious food from scratch. The aroma, the colors, the taste—it's an experience for all the senses.",
+                    "Good food equals good mood! Life is too short for boring meals. Let's spice things up and try something new today."
+                ],
+                captions: [
+                    "Eating my way through life, one bite at a time 🍴",
+                    "Food tastes better when shared with friends 💕",
+                    "Life is uncertain, eat dessert first 🍰"
+                ]
+            },
+            tech: {
+                posts: [
+                    "Innovation is reshaping our world every single day. Stay curious, keep learning, and embrace the technological revolution that's transforming how we live and work.",
+                    "The future belongs to those who embrace change and adapt quickly. Technology isn't just about gadgets—it's about solving real problems and improving lives.",
+                    "In the digital age, continuous learning isn't optional—it's essential. Stay ahead of the curve by investing in your tech skills today."
+                ],
+                captions: [
+                    "Building the future, one line of code at a time 💻",
+                    "Innovation never sleeps 🚀",
+                    "Tech enthusiast on a mission to make a difference ⚡"
+                ]
+            },
+            fashion: {
+                posts: [
+                    "Style is a way to say who you are without speaking. Fashion is art you wear, and every outfit is an opportunity to express your unique personality.",
+                    "Confidence is the best outfit. Wear it with pride and watch how it transforms not just your look, but your entire day.",
+                    "Fashion trends come and go, but true style is eternal. Build a wardrobe that reflects your authentic self and makes you feel unstoppable."
+                ],
+                captions: [
+                    "Dress like you're already famous 👗",
+                    "Style is what you make it ✨",
+                    "Fashion fades, style is eternal 🖤"
+                ]
+            }
+        };
+
+        document.getElementById('postForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const nicheSelect = document.getElementById('nicheSelect');
+            const nicheOther = document.getElementById('nicheOther');
+            const niche = nicheSelect.value === 'others' ? nicheOther.value : nicheSelect.value;
+            
+            if (!niche) {
+                alert('Please select or enter a niche');
+                return;
+            }
+            
+            const topicSelect = document.getElementById('topicSelect');
+            const topicOther = document.getElementById('topicOther');
+            const topic = topicSelect.value === 'others' ? topicOther.value : topicSelect.value;
+            
+            if (!topic) {
+                alert('Please select or enter a topic');
+                return;
+            }
+            
+            const platform = document.getElementById('platform').value;
+            
+            const toneSelect = document.getElementById('tone');
+            const toneOther = document.getElementById('toneOther');
+            const tone = toneSelect.value === 'others' ? toneOther.value : toneSelect.value;
+            
+            const details = document.getElementById('details').value;
+
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+
+            setTimeout(() => {
+                generateContent(niche, topic, platform, tone, details);
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('results').classList.add('show');
+            }, 2000);
+        });
+
+        function generateContent(niche, topic, platform, tone, details) {
+            const nicheKey = Object.keys(contentTemplates).find(k => niche.includes(k)) || 'fitness';
+            const template = contentTemplates[nicheKey];
+            
+            const post = template.posts[Math.floor(Math.random() * template.posts.length)];
+            const caption = template.captions[Math.floor(Math.random() * template.captions.length)];
+            
+            const hashtags = generateHashtags(niche, topic);
+            const keywords = generateKeywords(niche, topic);
+
+            document.getElementById('postContent').textContent = customizePost(post, topic, tone);
+            document.getElementById('caption').textContent = caption;
+            document.getElementById('hashtags').textContent = hashtags;
+
+            const keywordsContainer = document.getElementById('keywords');
+            keywordsContainer.innerHTML = '';
+            keywords.forEach(kw => {
+                const tag = document.createElement('span');
+                tag.className = 'keyword-tag';
+                tag.textContent = kw;
+                keywordsContainer.appendChild(tag);
+            });
+        }
+
+        function customizePost(basePost, topic, tone) {
+            let post = basePost;
+            
+            if (tone === 'humorous') {
+                post += " 😄 Life's too short to be serious all the time!";
+            } else if (tone === 'inspirational') {
+                post += " ✨ Believe in yourself and amazing things will happen.";
+            } else if (tone === 'educational') {
+                post += " 📚 Knowledge is power—keep learning and growing!";
+            }
+            
+            return post;
+        }
+
+        function generateHashtags(niche, topic) {
+            const commonTags = ['instagood', 'photooftheday', 'motivation', 'lifestyle', 'inspiration'];
+            const nicheTags = niche.split(' ').map(word => word.toLowerCase());
+            const topicTags = topic.split(' ').filter(w => w.length > 3).map(w => w.toLowerCase());
+            
+            const allTags = [...nicheTags, ...topicTags, ...commonTags]
+                .filter((v, i, a) => a.indexOf(v) === i)
+                .slice(0, 15);
+            
+            return allTags.map(tag => '#' + tag.replace(/[^a-z0-9]/g, '')).join(' ');
+        }
+
+        function generateKeywords(niche, topic) {
+            const base = [niche, topic];
+            const related = ['success', 'tips', 'guide', 'inspiration', 'motivation', 'lifestyle', 'goals', 'daily'];
+            
+            return [...base, ...related.slice(0, 6)]
+                .map(k => k.trim())
+                .filter(k => k.length > 0)
+                .slice(0, 10);
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        function copyKeywords() {
+            const keywords = Array.from(document.querySelectorAll('.keyword-tag'))
+                .map(tag => tag.textContent)
+                .join(', ');
+            navigator.clipboard.writeText(keywords).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
